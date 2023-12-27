@@ -1,18 +1,13 @@
 {
-  "name": "wox-plugin-template-nodejs",
+  "name": "replace_me_with_name",
   "version": "0.0.1",
-  "description": "Wox plugin template for nodejs",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Wox-launcher/Wox.Plugin.Template.Nodejs"
-  },
   "scripts": {
     "build": "pnpm clean && ncc build src/index.ts -o dist && babel dist --out-dir dist",
-    "dev": "pnpm build && mkdir -p ~/.config/wox/plugins/Wox.Plugin.Obsidian && cp -r dist/index.js ~/.config/wox/plugins/Wox.Plugin.Obsidian/ && cp plugin.json ~/.config/wox/plugins/Wox.Plugin.Obsidian/",
     "clean": "node -e \"var { rmdirSync, existsSync } = require('fs'), path = require('path'); ['./dist'].forEach(fPath => {if (existsSync(path.join(__dirname, fPath))) rmdirSync(path.join(__dirname, fPath), { recursive: true })}); process.exit(0);\"",
     "clean:all": "pnpm run clean && (rm -r ./node_modules || true)",
     "reinstall": "pnpm run clean:all && pnpm install",
-    "package": "pnpm build && cp -r images dist && cp -r plugin.json dist && cd dist && zip -r ../Wox.Plugin.Obsidian.wox *.js *.json images"
+    "dist": "pnpm build && cp -r images dist && cp -r plugin.json dist",
+    "package": "pnpm dist && cd dist && zip -r ../replace_me_with_name.wox *.js *.json images"
   },
   "devDependencies": {
     "@babel/cli": "^7.22.15",
