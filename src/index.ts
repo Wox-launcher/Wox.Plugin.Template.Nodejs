@@ -22,7 +22,7 @@ export const plugin: Plugin = {
             Action: async () => {
               await api.ChangeQuery({
                 QueryType: "input",
-                QueryText: "Hello World"
+                QueryText: "Hello World!"
               })
             }
           }
