@@ -24,8 +24,6 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@wox-launcher/wox-plugin": "^0.0.54",
-    "open": "^9.1.0",
-    "pinyin-match": "^1.2.4"
+    "@wox-launcher/wox-plugin": "^0.0.55"
   }
 }

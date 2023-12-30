@@ -5,6 +5,7 @@ let api: PublicAPI
 export const plugin: Plugin = {
   init: async (context: PluginInitContext) => {
     api = context.API
+    await api.Log("Info", "Init finished")
   },
 
   query: async (query: Query): Promise<Result[]> => {
