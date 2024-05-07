@@ -1,17 +1,17 @@
-import type { Plugin, PluginInitContext, PublicAPI, Query, Result } from "@wox-launcher/wox-plugin"
+import { Context, Plugin, PluginInitParams, PublicAPI, Query, Result } from "@wox-launcher/wox-plugin"
 
 let api: PublicAPI
 
 export const plugin: Plugin = {
-  init: async (context: PluginInitContext) => {
-    api = context.API
-    await api.Log("Info", "Init finished")
+  init: async (ctx: Context, initParams: PluginInitParams) => {
+    api = initParams.API
+    await api.Log(ctx, "Info", "Init finished")
   },
 
-  query: async (query: Query): Promise<Result[]> => {
+  query: async (ctx: Context, query: Query): Promise<Result[]> => {
     return [
       {
-        Title: "Hello World",
+        Title: "Hello World " + query.Search,
         SubTitle: "This is a subtitle",
         Icon: {
           ImageType: "relative",
@@ -21,7 +21,7 @@ export const plugin: Plugin = {
           {
             Name: "Open",
             Action: async () => {
-              await api.ChangeQuery({
+              await api.ChangeQuery(ctx, {
                 QueryType: "input",
                 QueryText: "Hello World!"
               })
