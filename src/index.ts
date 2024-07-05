@@ -17,6 +17,20 @@ export const plugin: Plugin = {
           ImageType: "relative",
           ImageData: "images/app.png"
         },
+        Preview: {
+          PreviewType: "text",
+          PreviewData: "This is a preview",
+          PreviewProperties: {
+            Property1: "Hello World",
+            Property2: "This is a property"
+          }
+        },
+        Tails: [
+          {
+            Type: "text",
+            Text: "This is a tail"
+          }
+        ],
         Actions: [
           {
             Name: "Open",
