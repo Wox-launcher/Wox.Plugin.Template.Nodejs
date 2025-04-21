@@ -24,11 +24,17 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          cache: 'pnpm'
+          node-version: "lts/*"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Lint the project
+        run: pnpm lint
+
+      - name: Check style
+        run: pnpm prettier:check
 
       - name: Build the project
         run: pnpm build

@@ -4,7 +4,7 @@ import { plugin } from "../index"
 test("query", async () => {
   const ctx = {} as Context
   const query = {
-    Env: { "ActiveWindowTitle": "", "ActiveWindowPid": 0, "ActiveBrowserUrl": "" },
+    Env: { ActiveWindowTitle: "", ActiveWindowPid: 0, ActiveBrowserUrl: "" },
     RawQuery: "wpm install ",
     Selection: { Type: "text", Text: "", FilePaths: [] },
     Type: "input",
@@ -17,7 +17,8 @@ test("query", async () => {
   } as Query
 
   await plugin.init(ctx, {
-    PluginDirectory: "", API: {
+    PluginDirectory: "",
+    API: {
       Log: (ctx, level, message) => {
         console.log(level, message)
       }
