@@ -7,6 +7,9 @@
     "dev": "nodemon --watch src --watch images --watch plugin.json --ext json,ts,js,mjs,png --exec pnpm run build",
     "clean": "node -e \"var { rmdirSync, existsSync } = require('fs'), path = require('path'); ['./dist'].forEach(fPath => {if (existsSync(path.join(__dirname, fPath))) rmdirSync(path.join(__dirname, fPath), { recursive: true })}); process.exit(0);\"",
     "clean:all": "pnpm run clean && (rm -r ./node_modules || true)",
+    "lint": "eslint",
+    "prettier:check": "prettier --check src/**/* **/*.json .github/**/* README.md",
+    "prettier:write": "prettier --write src/**/* **/*.json .github/**/* README.md",
     "reinstall": "pnpm run clean:all && pnpm install"
   },
   "devDependencies": {

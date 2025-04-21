@@ -30,5 +30,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Lint the project
+        run: pnpm lint
+
+      - name: Check style
+        run: pnpm prettier:check
+
       - name: Build the project
         run: pnpm build
