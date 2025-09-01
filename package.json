@@ -27,7 +27,7 @@
     "prettier": "3.3.2",
     "ts-jest": "^29.1.5",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.30.1"
+    "typescript-eslint": "^8.41.0"
   },
   "dependencies": {
     "@wox-launcher/wox-plugin": "^0.0.83"
