@@ -30,6 +30,6 @@
     "typescript-eslint": "^8.45.0"
   },
   "dependencies": {
-    "@wox-launcher/wox-plugin": "^0.0.83"
+    "@wox-launcher/wox-plugin": "^0.0.92"
   }
 }
