@@ -4,6 +4,7 @@ import { plugin } from "../index"
 test("query", async () => {
   const ctx = {} as Context
   const query = {
+    Id: "1",
     Env: { ActiveWindowTitle: "", ActiveWindowPid: 0, ActiveBrowserUrl: "", ActiveWindowIcon: {} as WoxImage },
     RawQuery: "wpm install ",
     Selection: { Type: "text", Text: "", FilePaths: [] },

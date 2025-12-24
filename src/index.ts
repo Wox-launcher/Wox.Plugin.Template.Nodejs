@@ -1,4 +1,4 @@
-import { Context, Plugin, PluginInitParams, PublicAPI, Query, Result } from "@wox-launcher/wox-plugin"
+import { ActionContext, Context, Plugin, PluginInitParams, PublicAPI, Query, Result } from "@wox-launcher/wox-plugin"
 
 let api: PublicAPI
 
@@ -34,11 +34,12 @@ export const plugin: Plugin = {
         Actions: [
           {
             Name: "Open",
-            Action: async () => {
-              await api.ChangeQuery(ctx, {
-                QueryType: "input",
-                QueryText: "Hello World!"
-              })
+            ContextData: {
+              search: query.Search
+            },
+            Action: async (actionCtx: Context, actionContext: ActionContext) => {
+              await api.Log(actionCtx, "Info", `Open action executed with search: ${actionContext.ContextData.search}`)
+              await api.Notify(actionCtx, `You searched for: ${actionContext.ContextData.search}`)
             }
           }
         ]
