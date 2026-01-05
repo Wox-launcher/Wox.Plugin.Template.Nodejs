@@ -1,3 +1,7 @@
-# Wox.Plugin.Template.Nodejs
+# {{.Name}}
 
-Plugin template for nodejs plugin
+# Install
+
+```
+wpm install {{.Name}}
+```

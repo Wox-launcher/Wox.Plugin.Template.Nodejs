@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@wox-launcher/wox-plugin':
-    specifier: ^0.0.107
-    version: 0.0.107
+    specifier: ^0.0.111
+    version: 0.0.111
 
 devDependencies:
   '@babel/cli':
@@ -1897,8 +1897,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@wox-launcher/wox-plugin@0.0.107:
-    resolution: {integrity: sha512-4KrzPHTj+3czlHEaOrGVyzNgUPi/HDW6F9ZF8O83oNCXM0HYU6/sYr/MTXo6uCc7vpzeAu2xrf1kFDXLBbzzCA==}
+  /@wox-launcher/wox-plugin@0.0.111:
+    resolution: {integrity: sha512-U+uQInllTtfacwOIC1Qbjp2/CfLOZGnfK5dZq+Bir6fEbL3SJ393TeHt/9yKOBpRi0sMWyQ2h2m59hl01Ykjdg==}
     dev: false
 
   /acorn-jsx@5.3.2(acorn@8.15.0):
