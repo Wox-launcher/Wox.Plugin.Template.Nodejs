@@ -1,4 +1,4 @@
-.PHONY: help install clean build publish test lint format
+.PHONY: help install clean build publish test lint format dev
 
 DIST_DIR := dist
 SRC_DIR := src
@@ -19,6 +19,9 @@ install:
 
 clean:
 	pnpm run clean
+
+dev:
+	pnpm run dev
 
 lint:
 	pnpm run lint
