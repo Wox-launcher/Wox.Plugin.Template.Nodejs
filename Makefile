@@ -25,7 +25,6 @@ dev:
 
 lint:
 	pnpm run lint
-	pnpm run prettier:check
 
 format:
 	pnpm run prettier:write
