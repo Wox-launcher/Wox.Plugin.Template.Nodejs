@@ -2,7 +2,7 @@
 
 DIST_DIR := dist
 SRC_DIR := src
-PLUGIN_NAME := $(shell node -p "require('./package.json').name")
+PLUGIN_NAME := {{.Name}}
 
 help:
 	@echo "Available commands:"
