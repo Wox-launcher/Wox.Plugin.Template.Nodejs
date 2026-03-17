@@ -70,7 +70,6 @@ jobs:
           commit-message: "chore: update wox-plugin sdk to ${{ steps.check_update.outputs.latest_version }}"
           branch: "update-sdk-${{ steps.check_update.outputs.latest_version }}"
           title: "chore: update wox-plugin sdk to ${{ steps.check_update.outputs.latest_version }}"
-          assignees: qianlifeng
           body: |
             A newer version of the `wox-plugin` SDK has been detected.
 

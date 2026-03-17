@@ -1,0 +1,60 @@
+name: Sync wox-plugin-submit2store Skill from Wox
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-skill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Wox repo
+        uses: actions/checkout@v4
+        with:
+          repository: Wox-launcher/Wox
+          path: _wox_upstream
+          sparse-checkout: |
+            .agents/skills/wox-plugin-submit2store
+          sparse-checkout-cone-mode: false
+
+      - name: Sync skill files
+        run: |
+          SOURCE="_wox_upstream/.agents/skills/wox-plugin-submit2store"
+          TARGET=".agents/skills/wox-plugin-submit2store"
+
+          if [ ! -d "$SOURCE" ]; then
+            echo "Source directory not found, skipping"
+            exit 0
+          fi
+
+          rm -rf "$TARGET"
+          cp -r "$SOURCE" "$TARGET"
+          rm -rf _wox_upstream
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet .agents/skills/wox-plugin-submit2store/ && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: sync wox-plugin-submit2store skill from upstream"
+          title: "chore: sync wox-plugin-submit2store skill from Wox upstream"
+          body: |
+            Auto-sync `wox-plugin-submit2store` skill from [Wox-launcher/Wox](https://github.com/Wox-launcher/Wox/tree/master/.agents/skills/wox-plugin-submit2store).
+
+            This PR is automatically created by GitHub Action.
+          branch: auto/sync-wox-plugin-submit2store-skill
+          delete-branch: true
+          labels: automated
