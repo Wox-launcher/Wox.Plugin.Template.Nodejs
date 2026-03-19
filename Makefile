@@ -1,16 +1,16 @@
 .PHONY: help init check-init check-dev-deps install reinstall clean lint format build test package dev
 
+PLUGIN_NAME := {{.Name}}
+
 DIST_DIR := dist
 SRC_DIR := src
 PYTHON ?= python3
-PLUGIN_NAME := {{.Name}}
-BIN_DIR := ./node_modules/.bin
-ESLINT := $(BIN_DIR)/eslint
-PRETTIER := $(BIN_DIR)/prettier
-JEST := $(BIN_DIR)/jest
-NCC := $(BIN_DIR)/ncc
-BABEL := $(BIN_DIR)/babel
-NODEMON := $(BIN_DIR)/nodemon
+ESLINT := pnpm exec eslint
+PRETTIER := pnpm exec prettier
+JEST := pnpm exec jest
+NCC := pnpm exec ncc
+BABEL := pnpm exec babel
+NODEMON := pnpm exec nodemon
 
 help:
 	@echo "Available commands:"
@@ -65,4 +65,3 @@ test: check-init check-dev-deps
 package: check-init build
 	cd $(DIST_DIR) && zip -r ../wox.plugin.$(PLUGIN_NAME).wox .
 	rm -rf $(DIST_DIR)
-	@echo "Plugin packaged to wox.plugin.$(PLUGIN_NAME).wox"
