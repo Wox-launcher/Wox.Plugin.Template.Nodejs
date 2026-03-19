@@ -122,8 +122,8 @@ def update_readme(name: str) -> None:
 def update_makefile(package_name: str) -> None:
     content = MAKEFILE_PATH.read_text(encoding="utf-8")
     content = re.sub(
-        r'(?m)^(\tcd \$\(DIST_DIR\) && zip -r "?\.\./wox\.plugin\.).+(\.wox"? \.)$',
-        f"\\1{package_name}\\2",
+        r"(?m)^PLUGIN_NAME := .*$",
+        f"PLUGIN_NAME := {package_name}",
         content,
         count=1,
     )
