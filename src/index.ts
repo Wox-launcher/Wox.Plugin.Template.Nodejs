@@ -15,7 +15,7 @@ export const plugin: Plugin = {
         SubTitle: "This is a subtitle",
         Icon: {
           ImageType: "relative",
-          ImageData: "images/app.png"
+          ImageData: "images/app.svg"
         },
         Preview: {
           PreviewType: "text",
