@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.0.2",
   "devDependencies": {
     "@babel/cli": "^7.24.7",
     "@babel/core": "^7.24.7",
@@ -18,6 +18,6 @@
     "typescript-eslint": "^8.45.0"
   },
   "dependencies": {
-    "@wox-launcher/wox-plugin": "^0.0.118"
+    "@wox-launcher/wox-plugin": "^0.0.121"
   }
 }
