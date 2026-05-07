@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@wox-launcher/wox-plugin':
-        specifier: ^0.0.126
-        version: 0.0.126
+        specifier: ^0.0.131
+        version: 0.0.131
     devDependencies:
       '@babel/cli':
         specifier: ^7.24.7
@@ -910,8 +910,8 @@ packages:
     resolution: {integrity: sha512-8LwjnlP39s08C08J5NstzriPvW1SP8Zfpp1BvC2sI35kPeZnHfxVkCwu4/+Wodgnd60UtT1n8K8zw+Mp7J9JmQ==}
     hasBin: true
 
-  '@wox-launcher/wox-plugin@0.0.126':
-    resolution: {integrity: sha512-TnGssWTvjBGj/RDcui32T68pOj8KYIdIM9/Z1LWh0S4mMU1NJR8U40L/7/CyxyfFx1ZEzLqfE4dSBSzyI+oj3g==}
+  '@wox-launcher/wox-plugin@0.0.131':
+    resolution: {integrity: sha512-ngsxoGXw/Nye5JKmd73E593smlEFUUqUd0kBV0TPvmb83wrL1rwVsz6cI+FpJCXTLrs9yD7LBgFLQ0SJoM0GIg==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3281,7 +3281,7 @@ snapshots:
 
   '@vercel/ncc@0.38.4': {}
 
-  '@wox-launcher/wox-plugin@0.0.126': {}
+  '@wox-launcher/wox-plugin@0.0.131': {}
 
   acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:
