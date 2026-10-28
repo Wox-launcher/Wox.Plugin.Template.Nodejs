@@ -103,7 +103,7 @@ def prompt_keywords(defaults: list[str]) -> list[str]:
 
 
 def package_name_from_plugin_name(name: str) -> str:
-    return name.strip().lower() or "plugin"
+    return re.sub(r"[^a-z0-9._-]+", "-", name.strip().lower()).strip("-.") or "plugin"
 
 
 def update_readme(name: str) -> None:
@@ -128,6 +128,14 @@ def update_makefile(package_name: str) -> None:
 def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "--check-initialized":
         return check_initialized_command()
+
+    if len(sys.argv) > 1 and sys.argv[1] == "--apply-existing":
+        if check_initialized_command() != 0:
+            return 1
+        name = str(load_plugin_data()["Name"])
+        update_readme(name)
+        update_makefile(package_name_from_plugin_name(name))
+        return 0
 
     plugin_data = load_plugin_data()
 

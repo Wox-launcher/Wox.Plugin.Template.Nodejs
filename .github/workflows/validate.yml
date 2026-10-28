@@ -1,0 +1,25 @@
+name: Validate template
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Check scaffold integration
+        run: python3 scripts/test-scaffold.py
+      - name: Initialize template
+        run: printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
+      - run: pnpm install --frozen-lockfile
+      - run: make test
+      - run: make package

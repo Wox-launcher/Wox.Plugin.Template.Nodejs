@@ -6,7 +6,7 @@
 #   "Version": "1.0.0",
 #   "MinWoxVersion": "2.0.0",
 #   "Description": "{{.Description}}",
-#   "Icon": "emoji:🐍",
+#   "Icon": "svg:<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='12' fill='#2563eb'/><path d='M14 11h14l7 7v19H14z' fill='#eff6ff'/><path d='M28 11v7h7' fill='#bfdbfe'/><path d='M19 24h11M19 29h11M19 34h7' fill='none' stroke='#2563eb' stroke-width='2.5' stroke-linecap='round'/></svg>",
 #   "TriggerKeywords": {{.TriggerKeywordsJSON}},
 #   "SettingDefinitions": [
 #     {
@@ -19,7 +19,8 @@
 #         "Style": {
 #           "Width": 400
 #         }
-#       }
+#       },
+#       "IsPlatformSpecific": false
 #     }
 #   ],
 #   "I18n": {
@@ -31,12 +32,14 @@
 #     }
 #   }
 # }
+# Cloud sync note: mark path, command, hotkey, browser profile, and app path settings with "IsPlatformSpecific": true.
 
 """
 Wox Python Script Plugin Template
 
 This is a template for creating Wox script plugins in Python.
 Script plugins are single-file plugins that are executed once per query.
+Wox requires Python 3.10 or later. Store install and queries fail on older versions.
 
 IMPORTANT:
 - Do not modify the base implementation in this file.
@@ -57,6 +60,10 @@ Available methods in WoxAPI:
 Actions:
 - Use "actions" field with an array of action objects (even for single action)
 - Each action can have a "name" field (displayed in UI, defaults to "Execute")
+- Set "isDefault": true to make Enter run that action. The first action is the default if omitted.
+- Optional "hotkey": prefer cmd on macOS / ctrl on Windows and Linux; avoid Wox built-ins and duplicate bindings
+- Set "preventHideAfterAction": true on an action to keep Wox open after it runs
+- Action icons must be monochrome `svg:` markup using `var(--wox-theme-icon-color)`. Do not use emoji, brand, or the plugin mark as the leading action icon.
 
 Built-in Actions (handled automatically by Wox, no need to implement in action):
 - copy-to-clipboard: Copy text to clipboard
@@ -67,6 +74,8 @@ Built-in Actions (handled automatically by Wox, no need to implement in action):
   Usage: {"id": "open-directory", "path": "/path/to/directory"}
 - notify: Show notification
   Usage: {"id": "notify", "message": "notification message"}
+- change-query: Replace the current query. Set preventHideAfterAction to keep Wox open.
+  Usage: {"id": "change-query", "query": "my keyword ", "preventHideAfterAction": true}
 
 Custom Actions:
 - Define your own action IDs and handle them in action()
@@ -81,6 +90,7 @@ Available environment variables:
 - WOX_DIRECTORY_WOX_DATA: Wox application data directory
 - WOX_DIRECTORY_PLUGINS: Plugin directory
 - WOX_DIRECTORY_THEMES: Theme directory
+- WOX_DIRECTORY_PLUGIN_CACHE: Dedicated cache folder (~/.wox/cache/plugins/<plugin-id>/), deleted on uninstall
 - WOX_SETTING_<KEY>: Plugin settings (e.g., WOX_SETTING_API_KEY for setting key "api_key")
 """
 
@@ -123,6 +133,10 @@ class WoxPluginBase:
         url: str
         path: str
         message: str
+        query: str
+        isDefault: bool
+        hotkey: str
+        preventHideAfterAction: bool
         data: dict[str, str]
 
     class TailItem(TypedDict, total=False):
@@ -227,7 +241,7 @@ class WoxPluginBase:
         """
         Handle action requests (OPTIONAL - only needed for custom actions)
 
-        Built-in actions (copy-to-clipboard, open-url, open-directory, notify) are handled
+        Built-in actions (copy-to-clipboard, open-url, open-directory, notify, change-query) are handled
         automatically by Wox. You only need to implement this method if you have custom actions.
 
         Note: This method is called as a hook for ALL actions (built-in and custom), so you can
@@ -320,6 +334,13 @@ class WoxPluginBase:
         return 0
 
 
+# Action Panel verbs: monochrome SVGs with the Wox theme variable.
+ACTION_COPY_ICON = 'svg:<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--wox-theme-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>'
+ACTION_OPEN_ICON = 'svg:<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--wox-theme-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5M19 5l-9 9"/><path d="M13 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-7"/></svg>'
+ACTION_EXECUTE_ICON = 'svg:<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--wox-theme-icon-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5h5.5L9 22l10-13h-6z"/></svg>'
+RESULT_ICON = "svg:<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><rect width='48' height='48' rx='12' fill='#2563eb'/><path d='M14 11h14l7 7v19H14z' fill='#eff6ff'/><path d='M28 11v7h7' fill='#bfdbfe'/><path d='M19 24h11M19 29h11M19 34h7' fill='none' stroke='#2563eb' stroke-width='2.5' stroke-linecap='round'/></svg>"
+
+
 class MyPlugin(WoxPluginBase):
     def query(
         self, raw_query: str, trigger_keyword: str, command: str, search: str
@@ -332,41 +353,54 @@ class MyPlugin(WoxPluginBase):
         results: List[WoxPluginBase.QueryResult] = [
             {
                 "title": f"Query: {search}",
-                "icon": "emoji:🔍",
+                "icon": RESULT_ICON,
                 "subtitle": "Click to copy the query to clipboard",
                 "score": 100,
                 "actions": [
-                    {"name": "Copy", "id": "copy-to-clipboard", "text": search}
+                    {
+                        "name": "Copy",
+                        "id": "copy-to-clipboard",
+                        "icon": ACTION_COPY_ICON,
+                        "text": search,
+                    }
                 ],
             },
             {
                 "title": "Example: Multiple Actions",
-                "icon": "emoji:⚙️",
+                "icon": RESULT_ICON,
                 "subtitle": "Right-click to see multiple actions",
                 "score": 90,
                 "actions": [
-                    {"name": "Copy", "id": "copy-to-clipboard", "text": "Copied text"},
+                    {
+                        "name": "Copy",
+                        "id": "copy-to-clipboard",
+                        "icon": ACTION_COPY_ICON,
+                        "text": "Copied text",
+                    },
                     {
                         "name": "Open Directory",
                         "id": "open-directory",
+                        "icon": ACTION_OPEN_ICON,
                         "path": os.environ.get("WOX_DIRECTORY_USER_SCRIPT_PLUGINS", ""),
                     },
                     {
                         "name": "Custom Action",
                         "id": "custom-action",
+                        "icon": ACTION_EXECUTE_ICON,
                         "data": {"key": "value"},
                     },
                 ],
             },
             {
                 "title": "Settings Example",
-                "icon": "emoji:⚙️",
+                "icon": RESULT_ICON,
                 "subtitle": f"API Key configured: {'Yes' if api_key else 'No'}",
                 "score": 70,
                 "actions": [
                     {
                         "name": "Copy API Key",
                         "id": "copy-to-clipboard",
+                        "icon": ACTION_COPY_ICON,
                         "text": f"API Key: {api_key if api_key else 'Not configured'}",
                     }
                 ],

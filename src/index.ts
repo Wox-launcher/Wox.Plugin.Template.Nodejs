@@ -1,4 +1,4 @@
-import { ActionContext, Context, Plugin, PluginInitParams, PublicAPI, Query, Result } from "@wox-launcher/wox-plugin"
+import { ActionContext, Context, Plugin, PluginInitParams, PublicAPI, Query, QueryResponse } from "@wox-launcher/wox-plugin"
 
 let api: PublicAPI
 
@@ -8,8 +8,8 @@ export const plugin: Plugin = {
     await api.Log(ctx, "Info", "Init finished")
   },
 
-  query: async (ctx: Context, query: Query): Promise<Result[]> => {
-    return [
+  query: async (ctx: Context, query: Query): Promise<QueryResponse> => {
+    return { Results: [
       {
         Title: "Hello World " + query.Search,
         SubTitle: "This is a subtitle",
@@ -44,6 +44,6 @@ export const plugin: Plugin = {
           }
         ]
       }
-    ]
+    ] }
   }
 }

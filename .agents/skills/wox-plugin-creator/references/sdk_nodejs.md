@@ -1,5 +1,7 @@
 # Wox Node.js Plugin SDK Reference
 
+Wox requires **Node.js 20 or later**.
+
 ## Installation
 
 `pnpm add @wox-launcher/wox-plugin`
@@ -11,9 +13,15 @@
 ```typescript
 interface Plugin {
   init(ctx: Context, params: PluginInitParams): Promise<void>;
-  query(ctx: Context, query: Query): Promise<Result[]>;
+  query(ctx: Context, query: Query): Promise<QueryResponse>;
 }
 ```
+
+Return `QueryResponse` when `plugin.json` declares `MinWoxVersion` >= `2.0.4`.
+Use `QueryResponse.Layout.ResultPreviewWidthRatio` and
+`QueryResponse.Layout.GridLayout` for query-scoped layout. The older
+`resultPreviewWidthRatio` and `gridLayout` metadata features are deprecated
+because they can only describe static plugin or command defaults.
 
 ### PluginInitParams
 
@@ -35,8 +43,27 @@ interface Query {
   TriggerKeyword: string;
   Command: string;
   Search: string;
+  Refinements?: { [id: string]: string }; // selected refinement values
 }
 ```
+
+### QueryRefinement
+
+Return refinements on `QueryResponse.Refinements`. Read selected values from `query.Refinements` on the next query. See `references/refinements.md`.
+
+```typescript
+interface QueryRefinement {
+  Id: string;
+  Title: string;
+  Type: "singleSelect" | "multiSelect" | "toggle" | "sort";
+  Options: QueryRefinementOption[];
+  DefaultValue?: string[];
+  Hotkey: string; // cmd+t on macOS, ctrl+t on Windows/Linux
+  Persist?: boolean;
+}
+```
+
+When assigned, `Hotkey` must be a real platform chord: `cmd+<key>` on macOS and `ctrl+<key>` on Windows/Linux. Detect `process.platform === "darwin"` and emit the matching string. Do not write a literal `ctrl/cmd+t` token. Check [built-in hotkeys and collisions](hotkeys.md) before choosing a refinement binding; an empty string leaves it unbound.
 
 ### Result
 
@@ -45,6 +72,7 @@ interface Result {
   Title: string; // Supports "i18n:key" prefix for auto-translation
   SubTitle?: string; // Supports "i18n:key" prefix
   Icon: WoxImage;
+  IdentityKey?: string; // Durable results only. Unique to this result, stable when title or query changes. Omit on a temporary prompt, empty or error state, or one-time status.
   Actions: ResultAction[];
   Score?: number; // 0-100, optional
   ContextData?: any; // Data passed to actions
@@ -58,9 +86,12 @@ interface ResultAction {
   Id: string;
   Name: string;
   IsDefault?: boolean;
+  Hotkey?: string;
   Action: (ctx: Context, actionContext: ActionContext) => Promise<void>;
 }
 ```
+
+Action `Hotkey` is optional. Prefer the platform primary modifier and follow [hotkeys.md](hotkeys.md) to avoid Wox commands and duplicate refinement/action bindings. Keep the action accessible through the Action Panel when leaving it unbound.
 
 ### WoxImage
 
@@ -72,13 +103,15 @@ interface WoxImage {
 }
 ```
 
+Action icons should be `{ ImageType: "svg", ImageData: "<svg ... var(--wox-theme-icon-color) ...>" }`, not emoji. See `references/icons.md`.
+
 ## Public API Methods
 
 The `ctx` object is required for all API calls.
 
 ### General
 
-- `ChangeQuery(ctx, query: PlainQuery)`: Update the search bar text.
+- `ChangeQuery(ctx, query: ChangeQueryParam)`: Update the search bar text or provide a complete `QueryHint`.
 - `HideApp(ctx)`: Hide the Wox window.
 - `ShowApp(ctx)`: Show the Wox window.
 - `Notify(ctx, message)`: Display a system notification.
@@ -86,23 +119,52 @@ The `ctx` object is required for all API calls.
 - `Copy(ctx, params: CopyParams)`: Copy text or image to clipboard.
 - `IsVisible(ctx)`: Check if Wox window is visible.
 
+### Cache
+
+On-disk cache goes in `GetCacheFolder`. Do not store cache with `SaveSetting` or `SetSetting`.
+
+- `GetCacheFolder(ctx)`: Return `~/.wox/cache/plugins/<plugin-id>/`. Wox creates it if needed and deletes it on uninstall.
+- Call it once in `init()`, keep the path, and write downloads, thumbnails, fetched JSON, and other rebuildable snapshots under it.
+- Plugin setting writes are cloud-synced. A cache value saved as a setting is replicated on every change and fills sync history, even when the key is hidden from `SettingDefinitions`.
+- `IsLocal: true` keeps a small machine-local preference out of cloud sync. Do not use it as a cache store. `IsPlatformSpecific` still syncs.
+- Do not invent `cache/`, `tmp/`, or `downloads/` next to the plugin file, under user data, or under a hardcoded folder name.
+- User preferences, API keys, and favorites are settings. Use `GetSetting` / `SetSetting` for those.
+
+### Theme
+
+Requires Wox >= 2.4.5.
+
+- `GetThemeColors(ctx, option?: GetThemeColorsOption)`: Opaque `#RRGGBB` launcher colors for HTML/webview previews: `Background`, `Text`, `SecondaryText`, `Border`, `Accent`, `AccentText`, `Selection`, plus `Dark`. Call this only when building HTML previews so light and dark Wox themes stay in sync. Markdown previews follow the launcher theme without this API.
+
 ### Settings
 
+Prefer these APIs for user settings. A normal write syncs across machines through Wox cloud sync. Do not persist ordinary settings in local files or a custom store, and do not store cache here.
+
 - `GetSetting(ctx, key)`: Retrieve a stored setting.
-- `SaveSetting(ctx, key, value, isPlatformSpecific)`: Save a setting.
+- `SaveSetting(ctx, key, value, isPlatformSpecific)`: Save a setting. Normal plugin settings are eligible for cloud sync, so pass `true` for platform-only values such as local paths, executable paths, shell commands, hotkeys, browser profiles, application paths, and system integrations.
 - `OnSettingChanged(ctx, callback)`: Subscribe to setting changes.
 - `OnGetDynamicSetting(ctx, callback)`: Provide runtime-generated setting definitions for `dynamic` settings.
+- `OnMRURestore(ctx, callback)`: Rebuild a start-page result from stored `MRUData`. Declare the `mru` feature first. Return `null` when the item is stale. Put restore identity on action `ContextData` when building results. Return immediately from memory or local cache. Wox waits 300ms, then discards that start-page restore and shows the next MRU item. Do not fetch or call host APIs inside the callback.
 
 ### UI Updates
 
-- `UpdateResult(ctx, result: UpdatableResult)`: Update a specific result in real-time (e.g., progress bars).
+- `UpdateResult(ctx, result: UpdatableResult)`: Update one visible result in place. Keep the same `Id`. See `SKILL.md`.
 - `PushResults(ctx, query, results)`: Append results to the current list.
-- `RefreshQuery(ctx, param)`: Re-run the current query.
+- `RefreshQuery(ctx, param)`: Re-run the current query. Use only when rows must be added or removed. See `SKILL.md`.
 - `GetUpdatableResult(ctx, resultId)`: Get current state of a result.
+
+### Plugin Tools
+
+Runtime-registered callable operations. Requires Wox >= 2.4.5. See `references/plugin_tools.md`.
+
+- `RegisterPluginTool(ctx, option)`: Publish a tool owned by this plugin.
+- `UnregisterPluginTool(ctx, option)`: Remove one of this plugin's tools.
+- `ListPluginTools(ctx, option)`: Snapshot of callable tools.
+- `InvokePluginTool(ctx, option)`: Validate arguments, run another plugin's tool, validate output.
 
 ### AI & LLM
 
-- `AIChatStream(ctx, model, conversations, options, callback)`: Stream responses from AI providers.
+- `AIChatStream(ctx, model, conversations, options, callback)`: Stream responses from AI providers. `model` is required. Pass `{}` when no thinking mode or loop policy is needed.
 
 ### Internationalization (i18n)
 
@@ -111,9 +173,59 @@ The `ctx` object is required for all API calls.
 
 ## Settings Authoring Notes
 
+- Prefer `GetSetting`, `SetSetting`, and `OnSettingChanged` for user settings. These APIs participate in Wox cloud sync across machines. `SaveSetting` remains for plugins that must run before Wox 2.4.0. Avoid local files or custom persistence for values the user would expect to follow them to another device.
+- Put cache under `GetCacheFolder(ctx)`. Do not save fetched payloads or other rebuildable data with `SaveSetting` or `SetSetting`. Do not invent a cache directory under the plugin folder or user-data tree.
 - Read `references/plugin_json_schema.md` before writing `plugin.json` settings.
 - For ready-to-copy settings examples and advanced patterns, read `references/settings_patterns.md`.
 - `OnGetDynamicSetting` is used together with a `dynamic` entry in `SettingDefinitions`.
+- Match runtime `SaveSetting(ctx, key, value, isPlatformSpecific)` calls to the setting metadata. Do not hardcode `false` for dynamically saved settings if their `SettingDefinitions` entry uses `IsPlatformSpecific: true`.
+- `DisabledInPlatforms` only controls where the setting is disabled; it does not isolate cloud-synced values.
+- Use static `QueryRequirements` in `plugin.json` when a query requires settings such as API keys. Wox blocks the query before calling `query()` and shows only the built-in `query_requirement_settings` setup preview.
+- There is no runtime `register_query_requirements` API. Declare query requirements in metadata.
+
+### QueryRequirements Types
+
+```typescript
+export interface PluginQueryRequirement {
+  SettingKey: string;
+  Validators?: PluginSettingValidator[];
+  Message?: string;
+}
+
+export interface PluginQueryRequirements {
+  AnyQuery?: PluginQueryRequirement[];
+  QueryWithoutCommand?: PluginQueryRequirement[];
+  QueryWithCommand?: Record<string, PluginQueryRequirement[]>;
+}
+```
+
+Metadata example:
+
+```json
+{
+  "SettingDefinitions": [
+    {
+      "Type": "textbox",
+      "Value": {
+        "Key": "accessKey",
+        "Label": "i18n:access_key",
+        "DefaultValue": "",
+        "Validators": [{ "Type": "not_empty", "Value": {} }]
+      }
+    }
+  ],
+  "QueryRequirements": {
+    "AnyQuery": [
+      {
+        "SettingKey": "accessKey",
+        "Message": "i18n:access_key_required"
+      }
+    ],
+    "QueryWithoutCommand": [],
+    "QueryWithCommand": {}
+  }
+}
+```
 
 ## Usage Example
 
@@ -125,6 +237,11 @@ class MyPlugin implements Plugin {
 
   async init(ctx, params) {
     this.api = params.API;
+    await this.api.OnMRURestore(ctx, async (_ctx, mruData) => {
+      const id = mruData.ContextData?.id;
+      if (!id) return null;
+      return { Title: id, IdentityKey: id, Actions: [{ Name: "Open", ContextData: { id }, Action: async () => {} }] };
+    });
   }
 
   async query(ctx, query) {
@@ -143,3 +260,36 @@ class MyPlugin implements Plugin {
 }
 export const plugin = new MyPlugin();
 ```
+
+## Static HTML preview
+
+A result preview is only for a large body that does not fit the row. See `SKILL.md`. When a preview is required, prose, lists, links, and images belong in `markdown`. Use `webview` for inline HTML, including CSS, only after markdown cannot express that preview. HTML is the last option because the webview can steal query focus, miss theme colors, and hit layout bugs. No HTTP server or temporary HTML file is needed; `html` is a payload field, not a preview type.
+
+Do not rasterize documents as SVG/`image` previews.
+
+When HTML is required, paint the page from `GetThemeColors` so light and dark launcher themes stay in sync. Put a theme color in `cacheKey`.
+
+```typescript
+import type { WoxPreview, WoxPreviewWebviewData } from "@wox-launcher/wox-plugin"
+
+const colors = await this.api.GetThemeColors(ctx, {})
+const preview: WoxPreview = {
+  PreviewType: "webview",
+  PreviewData: JSON.stringify({
+    html: `<!doctype html><html><body style="background:${colors.Background};color:${colors.Text}">Hello Wox</body></html>`,
+    cacheKey: `hello:${colors.Background}`
+  } satisfies WoxPreviewWebviewData)
+}
+// Assign preview to Result.Preview.
+```
+
+Set either `html` or `url`. Optional JSON fields are `injectCss`, `userAgent`, `cacheDisabled`, and `cacheKey` (defaults to the URL or HTML). Inline HTML has no plugin-relative base URL: embed CSS/images or use absolute resource URLs. This is browser content, not sanitized Markdown; escape untrusted text before interpolating it into HTML.
+
+For dynamic updates to an existing inline HTML page, prefer script-mode updates through the existing result-update API. See [HTML preview updates](html_preview_updates.md) for examples and lifecycle rules. Keep returning complete current HTML from `query()`; do not replace the document for each progress update. This does not change the preview-selection guidance in `SKILL.md`.
+
+## Structured query arguments and blocks
+
+See [QueryHint](../SKILL.md#queryhint) for `Commands[].Aliases`, suffix
+templates in `Commands[].QueryHint`, complete `ChangeQuery` instances, and
+SDK usage. `QueryHint` remains optional for `input` queries; do not
+embed markup in `QueryText` or infer argument boundaries from pasted text.

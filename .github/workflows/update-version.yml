@@ -23,7 +23,9 @@ jobs:
           node-version: "24"
 
       - name: Set up pnpm
-        run: corepack enable
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Check for SDK Update
         id: check_update
@@ -67,9 +69,21 @@ jobs:
 
           echo "Updated to SDK $NEW_SDK_VERSION and Plugin version $NEW_PLUGIN_VERSION_CLEAN"
 
+      - name: Validate updated template
+        if: steps.check_update.outputs.has_update == 'true'
+        run: |
+          python3 scripts/test-scaffold.py
+          TEMP_PROJECT=$(mktemp -d)
+          tar --exclude=.git --exclude=node_modules -cf - . | tar -xf - -C "$TEMP_PROJECT"
+          cd "$TEMP_PROJECT"
+          printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
+          pnpm install --frozen-lockfile
+          make test
+          make package
+
       - name: Create Pull Request
         if: steps.check_update.outputs.has_update == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ github.token }}
           commit-message: "chore: update @wox-launcher/wox-plugin sdk to ${{ steps.check_update.outputs.latest_version }}"

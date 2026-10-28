@@ -7,7 +7,7 @@
   "Description": "{{.Description}}",
   "Author": "{{.Author}}",
   "Version": "0.0.6",
-  "MinWoxVersion": "2.0.0",
+  "MinWoxVersion": "2.4.8",
   "Runtime": "nodejs",
   "Website": "{{.Website}}",
   "Entry": "index.js",

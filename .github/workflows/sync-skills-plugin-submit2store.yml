@@ -31,8 +31,8 @@ jobs:
           TARGET=".agents/skills/wox-plugin-submit2store"
 
           if [ ! -d "$SOURCE" ]; then
-            echo "Source directory not found, skipping"
-            exit 0
+            echo "Source directory not found"
+            exit 1
           fi
 
           rm -rf "$TARGET"
@@ -42,7 +42,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet .agents/skills/wox-plugin-submit2store/ && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$(git status --porcelain -- .agents/skills/wox-plugin-submit2store/)" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; else echo "changed=false" >> "$GITHUB_OUTPUT"; fi
 
       - name: Create Pull Request
         if: steps.changes.outputs.changed == 'true'

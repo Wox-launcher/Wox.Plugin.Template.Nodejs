@@ -1,10 +1,14 @@
 # Python Plugin Scaffold
 
+Wox requires **Python 3.10 or later**. Store install and plugin load fail on older versions.
+
 Best practice: clone the official template repo instead of hardcoding a scaffold.
 
 ```bash
 git clone https://github.com/Wox-launcher/Wox.Plugin.Template.Python my-plugin
 ```
+
+Before editing a new project, run `make init` in the project root when initialization has not been done yet.
 
 Then follow the template README, update `plugin.json` fields (ID, Name, Description, TriggerKeywords), and implement your plugin logic.
 

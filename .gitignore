@@ -3,6 +3,7 @@
 coverage/
 dist/
 node_modules/
+__pycache__/
 .idea/
 .DS_Store
 *.wox

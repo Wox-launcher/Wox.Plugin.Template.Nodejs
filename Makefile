@@ -61,7 +61,7 @@ lint: check-init check-dev-deps
 format: check-init check-dev-deps
 	$(PRETTIER) --write "$(SRC_DIR)/**/*" "**/*.json" README.md
 
-build: check-init check-dev-deps lint format
+build: check-init check-dev-deps lint
 ifeq ($(OS),Windows_NT)
 	$(POWERSHELL) "if (Test-Path '$(DIST_DIR)') { Remove-Item -Recurse -Force '$(DIST_DIR)' }"
 else
