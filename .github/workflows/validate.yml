@@ -1,4 +1,4 @@
-name: Validate template
+name: Validate plugin
 
 on:
   push:
@@ -16,9 +16,15 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 10
+      - name: Detect uninitialized template
+        id: template
+        run: |
+          node -e 'const p = require("./plugin.json"); require("fs").appendFileSync(process.env.GITHUB_OUTPUT, `uninitialized=${p.Id === "{{.Id}}" && p.Name === "{{.Name}}"}\n`)'
       - name: Check scaffold integration
+        if: steps.template.outputs.uninitialized == 'true'
         run: python3 scripts/test-scaffold.py
       - name: Initialize template
+        if: steps.template.outputs.uninitialized == 'true'
         run: printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
       - run: pnpm install --frozen-lockfile
       - run: make test

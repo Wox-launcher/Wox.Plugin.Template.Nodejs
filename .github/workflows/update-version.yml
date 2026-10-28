@@ -72,11 +72,13 @@ jobs:
       - name: Validate updated template
         if: steps.check_update.outputs.has_update == 'true'
         run: |
-          python3 scripts/test-scaffold.py
           TEMP_PROJECT=$(mktemp -d)
           tar --exclude=.git --exclude=node_modules -cf - . | tar -xf - -C "$TEMP_PROJECT"
           cd "$TEMP_PROJECT"
-          printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
+          if node -e 'const p = require("./plugin.json"); process.exit(p.Id === "{{.Id}}" && p.Name === "{{.Name}}" ? 0 : 1)'; then
+            python3 scripts/test-scaffold.py
+            printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
+          fi
           pnpm install --frozen-lockfile
           make test
           make package
