@@ -23,6 +23,8 @@ jobs:
       - name: Check scaffold integration
         if: steps.template.outputs.uninitialized == 'true'
         run: python3 scripts/test-scaffold.py
+      - name: Check project initialization
+        run: python3 scripts/test-init-wox-project.py
       - name: Initialize template
         if: steps.template.outputs.uninitialized == 'true'
         run: printf 'Example Plugin\nExample description\nexample\nExample author\n\ny\n' | make init
