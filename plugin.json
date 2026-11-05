@@ -6,7 +6,7 @@
   "Name": "{{.Name}}",
   "Description": "{{.Description}}",
   "Author": "{{.Author}}",
-  "Version": "0.0.7",
+  "Version": "0.0.8",
   "MinWoxVersion": "2.4.8",
   "Runtime": "nodejs",
   "Website": "{{.Website}}",
