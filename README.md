@@ -19,6 +19,8 @@ make build
 
 `make dev` rebuilds when source files change. `make lint` checks the code and `make format` formats it. The build is written to `dist/`.
 
+Run `make sync-skills` to manually sync the bundled skills from Wox. This replaces the local skill directories, so review or commit any local changes first.
+
 ## Package
 
 ```sh

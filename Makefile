@@ -1,4 +1,4 @@
-.PHONY: help init check-init check-dev-deps install reinstall clean lint format build test package dev
+.PHONY: help init check-init check-dev-deps install reinstall clean lint format build test package dev sync-skills
 
 PLUGIN_NAME := {{.Name}}
 
@@ -24,6 +24,10 @@ help:
 	@echo "  make lint     - Run linter"
 	@echo "  make format   - Format code"
 	@echo "  make package  - Build and package plugin"
+	@echo "  make sync-skills - Sync skills from Wox upstream"
+
+sync-skills:
+	$(PYTHON) scripts/sync-skills.py
 
 init:
 	$(PYTHON) scripts/init-wox-project.py
